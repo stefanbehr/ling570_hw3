@@ -1,0 +1,19 @@
+Stefan Behr
+LING 570
+Homework 3
+10/14/2012
+
+Part A, Analysis and Write-up
+
+Due to the fact that the Korean corpus we are using for the construction of our tagger is tagged at the morphological level, a natural inclination might be to not rely on word-word transitions as we did for English. If we simply transfer the tag bigram frequency analysis (or an n-gram frequency analysis with n greater than two) mechanism we used on English to Korean, without any sensitivity to what it is that tags are attached to, we would be relying heavily on morpheme-morpheme transitions in Korean, and we would be ignoring word-word transitions altogether.
+
+However, another approach could be taken which would emulate the word-word transition analysis used with English. By considering the group of morpheme tags associated with each word in the Korean corpus to be the tag for that word, we could further consider tag n-grams in the corpus to be comprised of sequences of n adjacent morpheme tag groups. For example, take two sample corpus lines from the exposition of this assignment:
+
+kunun    ku/NPN+ngun/PAU
+lunoka   luno/NPR+ngi/PCA
+
+From this data, we could derive two word-level tags, one each for 'kunun' and 'lunoka', i.e., (NPN,PAU) and (NPR,PCA), respectively. These two tags would contribute a count of one to a frequency count for the word-level tag bigram (NPN,PAU) (NPR,PCA).
+
+However, there might be an advantage to relying on the morphological structure of Korean for tagging n-grams, rather than using the word-level approach outlined just above. In the word-level approach, it seems that there’s an automatic reduction in the richness of the data, in that groups of morpheme tags associated with individual words are considered as indivisible units, which gets rid of statistical information about morpheme tag-morpheme tag and morpheme tag-morpheme associations. This might lead to poor tagging performance, especially on words not present in the training corpus, which would end up having an emission probability of zero under the word-level approach.
+
+Generally, it appears that one way to mitigate problems caused by unknown words for an n-gram tagger for Korean is to base the tagger on morphemes, which should allow it to assign non-zero probabilities to unknown words which are nonetheless composed of morphemes that were observed in the training corpus.
