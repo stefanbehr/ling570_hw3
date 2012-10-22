@@ -3,6 +3,7 @@
 use strict;
 use Getopt::Long;
 use Pod::Usage;
+$| = 1;
 
 # A Markov Model tagger using Viterbi
 # Input:  
@@ -217,6 +218,7 @@ sub load_params_new($$) {
 		}
 	}
 	close tp;
+	print "loaded $transitionProbs\n" if $verbose;
 
 	open (ep, "<$emissionProbs") || die "Could not open '$emissionProbs'";
 	$header = <ep>;
@@ -235,6 +237,7 @@ sub load_params_new($$) {
 		}
 	}
 	close ep;
+	print "loaded $emissionProbs\n" if $verbose;
 	@tagset = keys %tags;
 	unshift(@tagset, undef);
 }
