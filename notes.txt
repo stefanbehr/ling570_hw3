@@ -1,0 +1,4 @@
+1. some lines in the korean-testing-tagged.txt file have missing tags. make sure to guard against that in your evaluation code.
+2. some lines in the testing and testing-tagged files have ^Def in them. get rid of this?
+3. you can get rid of sentence boundaries
+4. add in word boundaries after each line
