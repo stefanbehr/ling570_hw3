@@ -97,7 +97,7 @@ class HMM:
         matrix = {}
         for morpheme in sorted(self.morpheme_set):
             row = {}
-            for tag in sorted(self.tagset):
+            for tag in sorted(t for t in self.tagset if t != "<s>"):
                 pair = (morpheme, tag)
                 this_pair_count = self.pair_frequencies.get(pair, 0)
                 tag_pair_count = self.tag_frequencies[tag]
@@ -122,9 +122,9 @@ class HMM:
         self.morphemes = [] # morphemes
         self.tags = [] # morpheme tags
 
-        pair = r'[^\s/]+?/[A-Z]+[a-z]?'
+        pair = r'[^\s/]+?/[^\+]+'
         TAGGEDSEQ = re.compile(r'^{0}(?:(?:\+){0})*$'.format(pair)) # matches a valid tagged morpheme sequence
-        PAIR = re.compile(r'(?<![^\+]){0}'.format(pair)) # matches a valid morpheme-tag pair in the proper context
+        PAIR = re.compile(r'(?<![^\+]){0}(?![^\+])'.format(pair)) # matches a valid morpheme-tag pair in the proper context
 
         EOS_THEM = '^EOS'
         EOS_ME = '<s>'
