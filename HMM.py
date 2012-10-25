@@ -64,13 +64,13 @@ class HMM:
 
         for row_tag in self.tagset:
             row = {}
+            row_count = T + sum(self.tag_bigram_frequencies[bigram] for bigram
+                                in self.tag_bigram_frequencies.keys()
+                                if bigram[0] == row_tag) # number of bigrams with col_tag as first unigram
             for col_tag in self.tagset:
-                bigram = (col_tag, row_tag)
-                bigram_count = 1 + self.tag_bigram_frequencies.get(bigram, 0) # add one smoothing
-                col_tag_count = T + sum(self.tag_bigram_frequencies[bigram] for bigram
-                                        in self.tag_bigram_frequencies.keys()
-                                        if bigram[0] == col_tag) # number of bigrams with col_tag as first unigram
-                t_prob = log(float(bigram_count)/col_tag_count, 2)
+                pair = (row_tag, col_tag)
+                bigram_count = 1 + self.tag_bigram_frequencies.get(pair, 0) # add one smoothing
+                t_prob = log(float(bigram_count)/row_count, 2)
                 row[col_tag] = t_prob
             matrix[row_tag] = row
 

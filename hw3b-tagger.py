@@ -51,12 +51,17 @@ if __name__ == "__main__":
     from Viterbi import Viterbi
 
     EOS = '^EOS'
-    HEAD = 1 # limit on lines of input for testings purposes (because viterbi is slow)
+    HEAD = 10 # limit on lines of input for testings purposes (because viterbi is slow)
 
     try:
         gold_f = sys.argv[1]
     except IndexError:
         exit("No filename argument provided")
+
+    try:
+        HEAD = int(sys.argv[2])
+    except IndexError:
+        HEAD = 10
 
     with open(gold_f, 'r') as gold_in:
         standard = gold_in.read()
@@ -75,18 +80,48 @@ if __name__ == "__main__":
 
     standard = process_standard(standard, EOS)
 
+    # tag sentences
+
     v = Viterbi()
-    s_wrap = '<s> {0} <s>'
 
-    v_output = v.tag(s_wrap.format(test_sentences[0]))
+    test_output = []
+    for sentence in test_sentences[:HEAD]:
+        s_morphemes = tuple(sentence.split(' '))
+        tagged = v.tag('<s> {0} <s>'.format(sentence))
+        tagged = tuple(tagged.split(' ')[1:-1])
+        test_output.extend(zip(s_morphemes, tagged))
 
-    i = 36
-    while standard[i] != "^EOS":
-        print standard[i]
-        i += 1
-    
-    print test_sentences[0]
-    print v_output
+    test_report = []
+    error = 0
+    possible = 0
+
+    output_index = 0
+    for line in standard:
+        if line == EOS:
+            test_report.append(EOS)
+        else:
+            morphemes, tags = line
+            incr = len(morphemes)
+
+            if output_index + incr > len(test_output):
+                break
+            
+            out_tags = [t for m, t in test_output[output_index:output_index+incr]]
+            for i in range(len(out_tags)):
+                my = out_tags[i]
+                gold = tags[i]
+                if my != gold:
+                    out_tags[i] = '**{0}**'.format(my)
+                    error += 1
+
+            test_report.append('+'.join(['/'.join(pair) for pair in zip(morphemes, out_tags)]))
+            possible += incr
+            output_index += incr
+
+    print '\n'.join(test_report)
+    print output_index
+    print error
+    print '{0:.2f}% accuracy'.format(float(possible - error)/possible*100)
 
     # feed sentences from test file to viterbi to tag them
     # results will be in space-separated string form
