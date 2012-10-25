@@ -1,3 +1,5 @@
+*.error
+*.log
 *.pyc
 hw2_code
 *.pdf

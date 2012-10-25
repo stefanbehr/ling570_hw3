@@ -72,11 +72,10 @@ if __name__ == "__main__":
     test = preprocess(test)
 
     test_morphemes = extract_morphemes(test)
-    morpheme_freqs = frequencies(test_morphemes)
-    test_morphemes = ['UNK' if morpheme_freqs[m] == 1 else m for m in test_morphemes]
-
-    test_sentences = [sent.strip() for sent in
-                      ' '.join(test_morphemes).split(EOS) if sent]
+    test_morphemes = ['<s>' if m.strip() == EOS else m.strip() for m in test_morphemes if m]
+    if test_morphemes[-1] == '<s>':
+        test_morphemes = test_morphemes[:-1]
+    test_glob = ' '.join(test_morphemes)
 
     standard = process_standard(standard, EOS)
 
@@ -84,12 +83,10 @@ if __name__ == "__main__":
 
     v = Viterbi()
 
-    test_output = []
-    for sentence in test_sentences[:HEAD]:
-        s_morphemes = tuple(sentence.split(' '))
-        tagged = v.tag('<s> {0} <s>'.format(sentence))
-        tagged = tuple(tagged.split(' ')[1:-1])
-        test_output.extend(zip(s_morphemes, tagged))
+    tagged = v.tag(test_glob)
+    tagged = [x for x in tagged.split(' ') if x]
+    if len(tagged) == len(test_morphemes):
+        test_output = zip(test_morphemes, tagged)
 
     test_report = []
     error = 0
@@ -99,6 +96,7 @@ if __name__ == "__main__":
     for line in standard:
         if line == EOS:
             test_report.append(EOS)
+            output_index += 1
         else:
             morphemes, tags = line
             incr = len(morphemes)
@@ -106,7 +104,9 @@ if __name__ == "__main__":
             if output_index + incr > len(test_output):
                 break
             
+            in_morphs = tuple([m for m, t in test_output[output_index:output_index+incr]])
             out_tags = [t for m, t in test_output[output_index:output_index+incr]]
+
             for i in range(len(out_tags)):
                 my = out_tags[i]
                 gold = tags[i]
@@ -119,9 +119,8 @@ if __name__ == "__main__":
             output_index += incr
 
     print '\n'.join(test_report)
-    print output_index
-    print error
-    print '{0:.2f}% accuracy'.format(float(possible - error)/possible*100)
+    print '\n' + '{} morphemes tagged: (possible)'
+    print '\n{0:.2f}% accuracy'.format(float(possible - error)/possible*100)
 
     # feed sentences from test file to viterbi to tag them
     # results will be in space-separated string form

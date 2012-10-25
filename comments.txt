@@ -1,0 +1,6 @@
+Stefan Behr
+LING 570
+Homework 3
+10/24/2012
+
+My tagger is not performing very well at all. Its accuracy is very low, and I suspect that this is due to a problem with the code that compares my tagger output to the gold standard, though I have been unable to pinpoint it. If I can fix that part of the code, I am confident that my approach, which relies on morpheme-morpheme transitions along with sentence boundaries, would yield a fairly high accuracy.
