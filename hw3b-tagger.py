@@ -99,7 +99,7 @@ if __name__ == "__main__":
     test_output = []
     for sentence in test_sentences:
         s_morphemes = tuple(sentence.split(' '))
-        tagged = ' '.split(v.tag(sentence))
+        tagged = v.tag(sentence).split(' ')
         test_output.extend(zip(s_morphemes, tagged))
 
     test_report = []
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                 gold = tags[i]
                 if my != gold:
                     out_tags[i] = '**{0}**'.format(my)
-                    error += 1
+                    errors += 1
 
             test_report.append('+'.join(['/'.join(pair) for pair in zip(morphemes, out_tags)]))
             possible += incr
@@ -131,8 +131,8 @@ if __name__ == "__main__":
 
     print '\n'.join(test_report)
     print output_index
-    print error
-    print '{0:.2f}% accuracy'.format(float(possible - error)/possible*100)
+    print errors
+    print '{0:.2f}% accuracy'.format(float(possible - errors)/possible*100)
 
     # feed sentences from test file to viterbi to tag them
     # results will be in space-separated string form
