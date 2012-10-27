@@ -1563,7 +1563,6 @@ CIA/**NPR**+ngun/PAU
 ngasatu/**NNC**
 taythonglyeng/NNC+ngul/PCA
 cepkyen/NNC+ha/XSV+ngun/EAN
-
 ku/NPN+nguy/PAN
 nonli/NNC+cek/XSF
 ngilkwanseng/NNC
@@ -12757,6 +12756,7 @@ ha/VX+ngul/EAN
 ngyeyceng/NNC+ngi/CO+ta/EFN
 ./SFN
 ^EOS
-23026
-1455
-93.68% accuracy
+
+Total # of morphemes evaluated:	23026
+
+Accuracy:                      	93.68%

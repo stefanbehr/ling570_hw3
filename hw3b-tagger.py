@@ -163,11 +163,11 @@ if __name__ == "__main__":
                 break
 
             out_tags = [t for m, t in test_output[output_index:output_index+incr]]
-            for i in range(len(out_tags)):
-                my = out_tags[i]
-                gold = tags[i]
-                if my != gold:
-                    out_tags[i] = '**{0}**'.format(my)
+            for i in range(incr):
+                my_tag = out_tags[i]
+                gold_tag = tags[i]
+                if my_tag != gold_tag:
+                    out_tags[i] = '**{0}**'.format(my_tag)
                     errors += 1
 
             test_report.append('+'.join(['/'.join(pair) for pair in zip(morphemes, out_tags)]))
@@ -175,10 +175,12 @@ if __name__ == "__main__":
             output_index += incr
 
     print '\n'.join(test_report)
-    print output_index
-    print errors
-    print '{0:.2f}% accuracy'.format(float(possible - errors)/possible*100)
 
-    # feed sentences from test file to viterbi to tag them
-    # results will be in space-separated string form
-    # you're going to need to reconstitute the viterbi output back into words for comparison with the gold standard
+    tot = 'Total # of morphemes evaluated:'
+    acc = '{0:{1}s}'.format('Accuracy:', len(tot))
+
+    tot = '\n{0}\t{1}'.format(tot, possible)
+    acc = '\n{0}\t{1:.2f}%'.format(acc, float(possible-errors)/possible*100)
+
+    print tot
+    print acc
