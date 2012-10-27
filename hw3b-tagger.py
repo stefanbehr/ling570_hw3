@@ -85,7 +85,7 @@ if __name__ == "__main__":
     v = Viterbi()
 
     test_output = []
-    for sentence in test_sentences[:HEAD]:
+    for sentence in test_sentences:
         s_morphemes = tuple(sentence.split(' '))
         tagged = v.tag('<s> {0} <s>'.format(sentence))
         tagged = tuple(tagged.split(' ')[1:-1])
