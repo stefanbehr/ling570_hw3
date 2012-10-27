@@ -7,16 +7,21 @@ def preprocess(data):
 
 def extract_morphemes(wordlist):
     morphemes = []
+    i = 0
     for word in wordlist:
+        if i == 1568:
+            continue
         if "^Def" not in word:
             word = word.replace('++', '<plus-tok>+')
             tokens = word.split('+')
             tokens = [token.replace('<plus-tok>', '+') for token in tokens]
             morphemes.extend(tokens)
+        i += 1
     return morphemes
 
 def process_standard(wordlist, EOS):
     result = []
+    check = []
     MORPH = re.compile(r'(?<![^\+])\S+?/[A-Z]+(?![^\+])')
     SPLIT = re.compile(r'^(.+)/(.+)$')
     for line in wordlist:
@@ -79,7 +84,7 @@ if __name__ == "__main__":
 
     standard = process_standard(standard, EOS)
 
-    # tag sentences
+        # tag sentences
 
     v = Viterbi()
 
@@ -104,7 +109,7 @@ if __name__ == "__main__":
 
             if output_index + incr > len(test_output):
                 break
-            
+
             out_tags = [t for m, t in test_output[output_index:output_index+incr]]
             for i in range(len(out_tags)):
                 my = out_tags[i]
