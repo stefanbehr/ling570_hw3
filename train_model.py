@@ -3,6 +3,9 @@
 from HMM import HMM
 import sys
 
+# initialize HMM object, write resulting
+# probability matrices to proper files
+
 try:
     training_file = sys.argv[1]
 except IndexError:

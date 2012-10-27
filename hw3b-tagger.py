@@ -3,9 +3,19 @@
 import re
 
 def preprocess(data):
+    """
+    Pull in and clean up data. Returns list of whitespace-stripped
+    lines from the data blob given.
+    """
     return [datum.strip() for datum in data.strip().split('\n')]
 
 def get_morphemes_and_standard(mlist, slist):
+    """
+    Given two lists of strings, one corresponding to a test
+    input file and the other corresponding to the tagged gold
+    standard of the test input file, returns a tuple containing
+    processed version of the two input lists.
+    """
     morphemes = []
     standard = []
 
@@ -34,6 +44,10 @@ def get_morphemes_and_standard(mlist, slist):
             morphs = []
             tags = []
             pairs = MORPH.findall(tagged)
+            # this case indicates ill-formed gold standard
+            # input, so we skip to the next iteration to 
+            # avoid getting well-formed test input that corresponds
+            # to ill-formed gold standard input. it happens.
             if not pairs:
                 continue
             else:
@@ -61,57 +75,6 @@ def get_morphemes_and_standard(mlist, slist):
     # package results and return
     return (morphemes, standard)
 
-def extract_morphemes(wordlist):
-    morphemes = []
-    i = 0
-    for word in wordlist:
-        if i == 1568:
-            i += 1
-            continue
-        if "^Def" not in word:
-            if word == '+':
-                morphemes.append(word)
-            else:
-                PLUSR = re.compile(r'\+\+$')
-                PLUSL = re.compile(r'^\+\+')
-                PLUSM = re.compile(r'\+\+')
-                tokens = word.split('+')
-                tokens = [token.replace('<p>', '+') for token in tokens]
-                morphemes.extend(tokens)
-        i += 1
-        
-    return morphemes
-
-def process_standard(wordlist, EOS):
-    result = []
-    MORPH = re.compile(r'(?<![^\+])\S+?/[A-Z]+(?![^\+])')
-    SPLIT = re.compile(r'^(.+)/(.+)$')
-    for line in wordlist:
-        if line == EOS:
-            result.append(line)
-        elif "^Def" in line:
-            continue
-        else:
-            w, tagged = line.split()
-            morphs = []
-            tags = []
-            for pair in MORPH.findall(tagged):
-                match = SPLIT.match(pair)
-                if match:
-                    m, t = match.groups()
-                    morphs.append(m)
-                    tags.append(t)
-                else:
-                    continue
-            result.append((tuple(morphs), tuple(tags)))
-    return result
-
-def frequencies(lst):
-    freqs = {}
-    for item in lst:
-        freqs[item] = freqs.get(item, 0) + 1
-    return freqs
-
 if __name__ == "__main__":
 
     import sys
@@ -119,6 +82,7 @@ if __name__ == "__main__":
 
     EOS = '^EOS'
 
+    # get gold standard file path
     try:
         gold_f = sys.argv[1]
     except IndexError:
@@ -127,20 +91,27 @@ if __name__ == "__main__":
     with open(gold_f, 'r') as gold_in:
         standard = gold_in.read()
 
+    # test file is redirected to stdin
     test_morphemes = sys.stdin.read()
 
+    # clean up test file and gold standard data for 
+    # further processing
     standard = preprocess(standard)
     test_morphemes = preprocess(test_morphemes)
 
+    # extract morphemes from test file and morpheme-tag pairs from gold standard
     test_morphemes, standard = get_morphemes_and_standard(test_morphemes, standard)
 
+    # partition morpheme list into sentence strings
     test_sentences = [sent.strip() for sent in
                       ' '.join(test_morphemes).split(EOS) if sent]
 
-    # tag sentences
 
+    # tag sentences!
     v = Viterbi()
 
+    # get output, storing each tag with the morpheme
+    # that generated it
     test_output = []
     for sentence in test_sentences:
         s_morphemes = tuple(sentence.split(' '))
@@ -151,6 +122,11 @@ if __name__ == "__main__":
     errors = 0
     possible = 0
 
+    # iterate through gold standard (a list containing sublists
+    # of variable lengths corresponding to lines in the original
+    # gold standard file), checking each tagged morpheme against 
+    # that morpheme's tag in the gold standard in the appropriate
+    # location
     output_index = 0
     for line in standard:
         if line == EOS:
@@ -174,6 +150,8 @@ if __name__ == "__main__":
             possible += incr
             output_index += incr
 
+    # print tagger results with incorrect tags marked, 
+    # total morphemes evaluated, and accuracy score
     print '\n'.join(test_report)
 
     tot = 'Total # of morphemes evaluated:'

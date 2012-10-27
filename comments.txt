@@ -3,4 +3,25 @@ LING 570
 Homework 3
 10/24/2012
 
-My tagger is not performing very well at all. Its accuracy is very low, and I suspect that this is due to a problem with the code that compares my tagger output to the gold standard, though I have been unable to pinpoint it. If I can fix that part of the code, I am confident that my approach, which relies on morpheme-morpheme transitions along with sentence boundaries, would yield a fairly high accuracy.
+My tagger ended up achieving an accuracy score of 93.68%, after tagging 23026 morphemes.
+This means that the tagger mistagged roughly 1455 morphemes.
+
+Of the errors committed by the tagger, there were at least 586 errors where the tagger
+mistagged morphemes as NNC, at least 203 incorrect NPR tags, at least 93 incorrect NNU
+tags, at least 90 incorrect XSV tags, at least 67 incorrect NFW tags, and so on.
+
+Given that over half of the tagger's errors were in misapplying the tags for common
+nouns and proper nouns, this should be an area of focus in any efforts to improve the
+tagger. Notably, it seems that a fair number of the morphemes which were mistagged as NNC
+should have in fact been tagged NPR. It also seems that a large number of morphemes
+which were mistagged as NPR should have been tagged as other types of nouns. Clearly,
+this version of the tagger doesn't do very well in distinguishing between different types
+of noun.
+
+It might be possible to improve the tagger's performance by adding word boundary tags.
+This would add the benefit of sensitivity to the word-level structure of the training
+and testing corpora without sacrificing the advantages of tagging at the morpheme level.
+
+Another possible improvement to the tagger might be to make it sensitive to whether or 
+not any tags in either the training or test sets represent a choice between two tags
+(e.g., NNC|VV, etc.).
