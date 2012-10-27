@@ -73,7 +73,6 @@ if __name__ == "__main__":
 
     test_morphemes = extract_morphemes(test)
     morpheme_freqs = frequencies(test_morphemes)
-    test_morphemes = ['UNK' if morpheme_freqs[m] == 1 else m for m in test_morphemes]
 
     test_sentences = [sent.strip() for sent in
                       ' '.join(test_morphemes).split(EOS) if sent]
