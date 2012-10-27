@@ -5,6 +5,62 @@ import re
 def preprocess(data):
     return [datum.strip() for datum in data.strip().split('\n')]
 
+def get_morphemes_and_standard(mlist, slist):
+    morphemes = []
+    standard = []
+
+    EOS = '^EOS'
+    DEF = '^Def'
+
+    # regexes for extracting gold standard morphs/TAGS
+    MORPH = re.compile(r'(?<![^\+])\S+?/[A-Z]+(?![^\+])')
+    SPLIT = re.compile(r'^(.+)/(.+)$')
+    
+    # regexes for handling + sequences in morpheme sequences
+    PLUSR = re.compile(r'\+\+$')
+    PLUSL = re.compile(r'^\+\+')
+    PLUSM = re.compile(r'\+\+')
+
+    # loop through lines of both files, aligned properly
+    for mline, sline in zip(mlist, slist):
+        # skip ill-formed lines with ^Def
+        if DEF in mline or DEF in sline:
+            continue
+        if sline == EOS and mline == EOS:
+            standard.append(sline)
+            morphemes.append(mline)
+        else:
+            word, tagged = sline.split()
+            morphs = []
+            tags = []
+            pairs = MORPH.findall(tagged)
+            if not pairs:
+                continue
+            else:
+                # extract gold standard morphs/TAGS
+                for pair in pairs:
+                    match = SPLIT.match(pair)
+                    if match:
+                        m, t = match.groups()
+                        morphs.append(m)
+                        tags.append(t)
+                    else:
+                        continue
+                standard.append((tuple(morphs), tuple(tags)))
+
+                # extract test morphemes
+                if mline == '+':
+                    morphemes.append(mline)
+                else:
+                    # guard against sequences of contiguous pluses
+                    mline = PLUSM.sub('+<p>', PLUSR.sub('+<p>', PLUSL.sub('<p>+', mline)))
+                    mtokens = mline.split('+')
+                    mtokens = [mtoken.replace('<p>', '+') for mtoken in mtokens]
+                    morphemes.extend(mtokens)
+
+    # package results and return
+    return (morphemes, standard)
+
 def extract_morphemes(wordlist):
     morphemes = []
     i = 0
@@ -19,7 +75,6 @@ def extract_morphemes(wordlist):
                 PLUSR = re.compile(r'\+\+$')
                 PLUSL = re.compile(r'^\+\+')
                 PLUSM = re.compile(r'\+\+')
-                word = PLUSM.sub('+<p>', PLUSR.sub('+<p>', PLUSL.sub('<p>+', word)))
                 tokens = word.split('+')
                 tokens = [token.replace('<p>', '+') for token in tokens]
                 morphemes.extend(tokens)
@@ -29,7 +84,6 @@ def extract_morphemes(wordlist):
 
 def process_standard(wordlist, EOS):
     result = []
-    check = []
     MORPH = re.compile(r'(?<![^\+])\S+?/[A-Z]+(?![^\+])')
     SPLIT = re.compile(r'^(.+)/(.+)$')
     for line in wordlist:
@@ -64,33 +118,24 @@ if __name__ == "__main__":
     from Viterbi import Viterbi
 
     EOS = '^EOS'
-    HEAD = 10 # limit on lines of input for testings purposes (because viterbi is slow)
 
     try:
         gold_f = sys.argv[1]
     except IndexError:
         exit("No filename argument provided")
 
-    try:
-        HEAD = int(sys.argv[2])
-    except IndexError:
-        HEAD = 10
-
     with open(gold_f, 'r') as gold_in:
         standard = gold_in.read()
 
-    test = sys.stdin.read()
+    test_morphemes = sys.stdin.read()
 
     standard = preprocess(standard)
-    test = preprocess(test)
+    test_morphemes = preprocess(test_morphemes)
 
-    test_morphemes = extract_morphemes(test)
-    morpheme_freqs = frequencies(test_morphemes)
+    test_morphemes, standard = get_morphemes_and_standard(test_morphemes, standard)
 
     test_sentences = [sent.strip() for sent in
                       ' '.join(test_morphemes).split(EOS) if sent]
-
-    standard = process_standard(standard, EOS)
 
     # tag sentences
 
