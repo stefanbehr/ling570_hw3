@@ -36,7 +36,7 @@ def process_standard(wordlist, EOS):
                     tags.append(t)
                 else:
                     continue
-            result.append((tuple(morphs), tuple(tags)))
+            result.extend(zip(tuple(morphs), tuple(tags)))
     return result
 
 def frequencies(lst):
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     test = preprocess(test)
 
     test_morphemes = extract_morphemes(test)
-    test_morphemes = ['<s>' if m.strip() == EOS else m.strip() for m in test_morphemes if m]
+    test_morphemes = ['<s>' if m == EOS else m for m in test_morphemes if m]
     if test_morphemes[-1] == '<s>':
         test_morphemes = test_morphemes[:-1]
     test_glob = ' '.join(test_morphemes)
@@ -84,42 +84,36 @@ if __name__ == "__main__":
     v = Viterbi()
 
     tagged = v.tag(test_glob)
-    tagged = [x for x in tagged.split(' ') if x]
-    if len(tagged) == len(test_morphemes):
-        test_output = zip(test_morphemes, tagged)
+    tagged = [x for x in tagged.split(' ')]
 
     test_report = []
     error = 0
     possible = 0
 
-    output_index = 0
+    index = 0
     for line in standard:
         if line == EOS:
             test_report.append(EOS)
-            output_index += 1
         else:
-            morphemes, tags = line
-            incr = len(morphemes)
-
-            if output_index + incr > len(test_output):
-                break
+            morpheme, tag = line
+            tm = test_morphemes[index]
+            out_tag = tagged[index]
             
-            in_morphs = tuple([m for m, t in test_output[output_index:output_index+incr]])
-            out_tags = [t for m, t in test_output[output_index:output_index+incr]]
+            if morpheme != tm:
+                print "bad morpheme!"
+                print 'input: {}'.format(tm)
+                print 'gold: {}'.format(morpheme)
 
-            for i in range(len(out_tags)):
-                my = out_tags[i]
-                gold = tags[i]
-                if my != gold:
-                    out_tags[i] = '**{0}**'.format(my)
-                    error += 1
+            if out_tag != tag:
+                out_tag = '**{0}**'.format(out_tag)
+                error += 1
 
-            test_report.append('+'.join(['/'.join(pair) for pair in zip(morphemes, out_tags)]))
-            possible += incr
-            output_index += incr
+            possible += 1
+            test_report.append('/'.join((tm, out_tag)))
+        index += 1
 
     print '\n'.join(test_report)
-    print '\n' + '{} morphemes tagged: (possible)'
+    print '\n' + 'Number of morphemes tagged: {0}'.format(possible)
     print '\n{0:.2f}% accuracy'.format(float(possible - error)/possible*100)
 
     # feed sentences from test file to viterbi to tag them
