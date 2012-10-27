@@ -89,6 +89,9 @@ class HMM:
         self.morpheme_frequencies = self.frequencies(self.morphemes)
         self.morpheme_set = list(set(self.morphemes))
 
+        self.tags = [t for t in self.tags if t != '<s>']
+        self.tagset = list(set(self.tags))
+
         self.pairs = zip(self.morphemes, self.tags)
         self.pair_frequencies = self.frequencies(self.pairs)
 
@@ -97,7 +100,7 @@ class HMM:
         matrix = {}
         for morpheme in sorted(self.morpheme_set):
             row = {}
-            for tag in sorted(t for t in self.tagset if t != "<s>"):
+            for tag in sorted(self.tagset):
                 pair = (morpheme, tag)
                 this_pair_count = self.pair_frequencies.get(pair, 0)
                 tag_pair_count = self.tag_frequencies[tag]
