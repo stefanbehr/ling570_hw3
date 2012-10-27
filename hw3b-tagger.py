@@ -10,13 +10,21 @@ def extract_morphemes(wordlist):
     i = 0
     for word in wordlist:
         if i == 1568:
+            i += 1
             continue
         if "^Def" not in word:
-            word = word.replace('++', '<plus-tok>+')
-            tokens = word.split('+')
-            tokens = [token.replace('<plus-tok>', '+') for token in tokens]
-            morphemes.extend(tokens)
+            if word == '+':
+                morphemes.append(word)
+            else:
+                PLUSR = re.compile(r'\+\+$')
+                PLUSL = re.compile(r'^\+\+')
+                PLUSM = re.compile(r'\+\+')
+                word = PLUSM.sub('+<p>', PLUSR.sub('+<p>', PLUSL.sub('<p>+', word)))
+                tokens = word.split('+')
+                tokens = [token.replace('<p>', '+') for token in tokens]
+                morphemes.extend(tokens)
         i += 1
+        
     return morphemes
 
 def process_standard(wordlist, EOS):
@@ -84,19 +92,18 @@ if __name__ == "__main__":
 
     standard = process_standard(standard, EOS)
 
-        # tag sentences
+    # tag sentences
 
     v = Viterbi()
 
     test_output = []
     for sentence in test_sentences:
         s_morphemes = tuple(sentence.split(' '))
-        tagged = v.tag('<s> {0} <s>'.format(sentence))
-        tagged = tuple(tagged.split(' ')[1:-1])
+        tagged = ' '.split(v.tag(sentence))
         test_output.extend(zip(s_morphemes, tagged))
 
     test_report = []
-    error = 0
+    errors = 0
     possible = 0
 
     output_index = 0
